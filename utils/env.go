@@ -14,9 +14,7 @@ func GetConfigValue(key string) string {
 	if err != nil {
 		fmt.Println("Error in reading config File", err)
 	}
-
-	value, ok := viper.Get("PORT").(string)
-
+	value, ok := viper.Get(key).(string)
 	if !ok {
 		log.Fatalf("Not present")
 	}

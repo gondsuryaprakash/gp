@@ -5,6 +5,8 @@ import (
 	"time"
 
 	"github.com/dgrijalva/jwt-go"
+	"github.com/gin-gonic/gin"
+	"github.com/gondsuryaprakash/gondpariwar/logger"
 	"github.com/gondsuryaprakash/gondpariwar/utils"
 )
 
@@ -12,12 +14,13 @@ var jwtSecreteKey = utils.GetConfigValue("SECRETKEY")
 
 type AuthService interface {
 	VerifyJWt(token string) (*jwt.Token, error)
-	GenerateToken(email string) string
+	GenerateToken(ctx *gin.Context, email string) string
 	// setTokenInCookie() error
 }
 
 type AuthStruct struct {
 	SecretKey string
+	Issuer    string
 }
 
 type Claims struct {
@@ -26,35 +29,48 @@ type Claims struct {
 }
 
 func JWTAuthService() AuthService {
+	funcName := "service.JWTAuthService"
+	logger.D(jwtSecreteKey)
+	logger.D(funcName)
 	return &AuthStruct{
 		SecretKey: jwtSecreteKey,
+		Issuer:    "gp_auth",
 	}
 }
 
-func (v *AuthStruct) VerifyJWt(token string) (*jwt.Token, error) {
-	return jwt.Parse(token, func(token *jwt.Token) (interface{}, error) {
+func (v *AuthStruct) VerifyJWt(encodedToken string) (*jwt.Token, error) {
+	funcName := "service.VerifyJWt"
+	logger.I(funcName)
+	return jwt.Parse(encodedToken, func(token *jwt.Token) (interface{}, error) {
 		if _, isvalid := token.Method.(*jwt.SigningMethodHMAC); !isvalid {
+			logger.D(funcName, token.Header["alg"])
 			return nil, fmt.Errorf("Invalid token", token.Header["alg"])
 
 		}
-		return []byte(jwtSecreteKey), nil
+		return []byte(v.SecretKey), nil
 	})
 }
 
-func (v *AuthStruct) GenerateToken(email string) string {
-
+func (v *AuthStruct) GenerateToken(ctx *gin.Context, email string) string {
+	funcName := "service.GenerateToken"
+	logger.D(funcName)
 	expiryTime := time.Now().Add(5 * time.Minute)
-
 	claims := &Claims{
 		Email: email,
 		StandardClaims: jwt.StandardClaims{
 			ExpiresAt: expiryTime.Unix(),
+			Issuer:    v.Issuer,
 			IssuedAt:  time.Now().Unix(),
 		},
 	}
 
-	token := jwt.NewWithClaims(jwt.SigningMethodES256, claims)
-	tokenString, _ := token.SignedString([]byte(v.SecretKey))
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
+
+	//encoded string
+	tokenString, err := token.SignedString([]byte(v.SecretKey))
+	if err != nil {
+		panic(err)
+	}
 	return tokenString
 }
 

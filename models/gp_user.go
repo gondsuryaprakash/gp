@@ -8,7 +8,7 @@ import (
 type GpUser struct {
 	Id         int    `orm:"column(id);auto" json:"id"`
 	Name       string `orm:"column(name);null" json:"name"`
-	Password   string `orm:"column(password);null" json:"password"`
+	Password   string `orm:"column(password);null" json:"-"`
 	Email      string `orm:"column(email);null" json:"email"`
 	Mobile     string `orm:"column(mobile);size(10);null;" json:"mobile"`
 	Gender     string `orm:"column(gender);null;" json:"gender"`
@@ -38,7 +38,6 @@ func AddUser(user *GpUser) (err error) {
 		logger.E("Err", err)
 		return err
 	}
-	logger.I("Hi models.AddUser")
 	return nil
 }
 
@@ -48,7 +47,6 @@ func GetUserById(userId int) (v *GpUser, err error) {
 	logger.I(funcName)
 	o := orm.NewOrm()
 	v = &GpUser{Id: userId}
-	logger.D("v", *v)
 	if err := o.Read(v); err != nil {
 		if err == orm.ErrMissPK {
 			logger.D("No primary key found.")
@@ -61,31 +59,38 @@ func GetUserById(userId int) (v *GpUser, err error) {
 	return v, nil
 }
 
-// Get user By Mobile number return User
-func GetUserByMobile(mobile string) (v *GpUser, err error) {
-	funcName := "models.GetUserByMobile"
+// Get User ById and return User
+func GetUserByEmailId(email string) (v *GpUser, err error) {
+	funcName := "models.GetUserByEmailId"
 	logger.I(funcName)
-	v = &GpUser{Mobile: mobile}
 	o := orm.NewOrm()
-	if err = o.Read(v); err != nil {
+	v = &GpUser{Email: email}
+	if err := o.Read(v, "Email"); err != nil {
+		if err == orm.ErrMissPK {
+			logger.D("No primary key found.")
+		} else if err == orm.ErrNoRows {
+			logger.D("No Row Found.")
+		}
+		logger.D("GetUserById", err)
 		return nil, err
 	}
+	logger.I(funcName, v)
 	return v, nil
 }
 
-func IsUserExistByEmail(email string) bool {
+func IsUserExistByEmail(email string) (bool, error) {
 	funcName := "models.isUserExistByEmail"
 	logger.I(funcName)
 	o := orm.NewOrm()
 	v := &GpUser{}
 	err := o.QueryTable(new(GpUser)).Filter("email", email).One(v)
 	if err != nil && err != orm.ErrNoRows {
-		return true
+		return true, nil
 	}
 	if err == orm.ErrNoRows {
-		return false
+		return false, err
 	}
-	return true
+	return true, nil
 }
 
 func UpdateUserById(m *GpUser) (err error) {
