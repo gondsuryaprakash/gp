@@ -19,6 +19,11 @@ type LoginStruct struct {
 	Email    string `orm:"column(email);null" json:"email"`
 }
 
+type ForgotPassword struct {
+	Newpassword string `json:"newpassword"`
+	Email       string `json:"email"`
+}
+
 type GpUser struct {
 	Id         int    `json:"id"`
 	Name       string `json:"name"`
@@ -48,6 +53,7 @@ func PostLogin(ctx *gin.Context) {
 	if err != nil {
 		response := utilities.ResponseWithError(utilities.GP_CODE_409, "User doesn't Exist")
 		ctx.JSON(cast.ToInt(utilities.GP_CODE_500), response)
+		return
 
 	}
 
@@ -98,7 +104,7 @@ func AddUser(ctx *gin.Context) {
 		return
 	}
 	logger.D("user.Password", user.Password)
-	user.Password, _ = utils.HashPassword(user.Password)
+	user.Password = utils.HashPassword(user.Password)
 	// Check for use already exist
 	isUserExist, _ := models.IsUserExistByEmail(user.Email) // Will Shifted in MiddleWare.
 	logger.I("isUserExist", isUserExist)
@@ -127,6 +133,33 @@ func AddUser(ctx *gin.Context) {
 		return
 	}
 	resturnResponse := utilities.ResponseWithError(utilities.GP_CODE_200, "User added successfully")
+	ctx.JSON(http.StatusOK, resturnResponse)
+
+}
+
+func PostForgotPassword(ctx *gin.Context) {
+
+	funcName := "controller.ForgotPassword"
+	logger.I(funcName)
+
+	userID, _ := ctx.Get("userId")
+	newPassword, _ := ctx.Get("newPassword")
+
+	hashedNewPassword := utils.HashPassword(newPassword.(string))
+
+	err := models.UpdateUserByIdWithColumns(&models.GpUser{
+		Password: hashedNewPassword,
+		Id:       userID.(int),
+	}, "password")
+
+	if err != nil {
+		logger.E(funcName, err)
+		resturnResponse := utilities.ResponseWithError(utilities.GP_CODE_500, "Something went wrong")
+		ctx.JSON(http.StatusInternalServerError, resturnResponse)
+		return
+	}
+
+	resturnResponse := utilities.ResponseWithError(utilities.GP_CODE_200, "Password changed successfully")
 	ctx.JSON(http.StatusOK, resturnResponse)
 
 }

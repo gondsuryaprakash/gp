@@ -4,9 +4,15 @@ import (
 	"github.com/dgrijalva/jwt-go"
 	"github.com/gin-gonic/gin"
 	"github.com/gondsuryaprakash/gondpariwar/logger"
+	"github.com/gondsuryaprakash/gondpariwar/models"
 	"github.com/gondsuryaprakash/gondpariwar/utilities"
 	"github.com/spf13/cast"
 )
+
+type ForgotPassword struct {
+	Email       string `json:"email"`
+	Newpassword string `json:"newpassword"`
+}
 
 func Authorise() gin.HandlerFunc {
 	funcName := "service.Authorise"
@@ -39,5 +45,35 @@ func Authorization(ctx *gin.Context) {
 		ctx.JSON(cast.ToInt(utilities.GP_CODE_401), response)
 		ctx.Abort()
 		return
+	}
+}
+
+func IsUserExist() gin.HandlerFunc {
+
+	funcName := "service.IsUserExist"
+	logger.I(funcName)
+
+	return func(ctx *gin.Context) {
+		var v *ForgotPassword
+		if err := ctx.Bind(&v); err != nil {
+			logger.E(funcName, err)
+			response := utilities.ResponseWithError(utilities.GP_CODE_500, "Something went worng")
+			ctx.JSON(cast.ToInt(utilities.GP_CODE_500), response)
+			ctx.Abort()
+			return
+		}
+
+		logger.D(funcName)
+		existingUser, err := models.GetUserByEmailId(v.Email)
+		if err != nil {
+			response := utilities.ResponseWithError(utilities.GP_CODE_409, "Email doesn't Exist")
+			ctx.JSON(cast.ToInt(utilities.GP_CODE_409), response)
+			ctx.Abort()
+			return
+		}
+
+		ctx.Set("userId", existingUser.Id)
+		ctx.Set("newPassword", v.Newpassword)
+		ctx.Next()
 	}
 }

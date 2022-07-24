@@ -5,13 +5,13 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
-func HashPassword(password string) (string, error) {
+func HashPassword(password string) string {
 	funcName := "utils.HashPassword"
 	logger.I(funcName)
 
-	bytePassword, err := bcrypt.GenerateFromPassword([]byte(password), 14)
+	bytePassword, _ := bcrypt.GenerateFromPassword([]byte(password), 14)
 	logger.D("string(bytePassword)", string(bytePassword))
-	return string(bytePassword), err
+	return string(bytePassword)
 }
 func CheckPasswordHash(hashedPassword, password string) bool {
 	funcName := "utils.CheckPasswordHash"

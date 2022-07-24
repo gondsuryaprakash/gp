@@ -14,6 +14,7 @@ func UserHandler(router *gin.Engine) {
 	{
 		auth.POST("/login", controller.PostLogin)
 		auth.POST("/register", controller.AddUser)
+		auth.POST("/forgotpassword", service.IsUserExist(), controller.PostForgotPassword)
 		// auth.PUT("/update", controller.UpdateUser)
 		// auth.DELETE("/delete/:id", controller.DeleteUser)
 	}

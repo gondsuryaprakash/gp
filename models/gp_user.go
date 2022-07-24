@@ -104,12 +104,28 @@ func UpdateUserById(m *GpUser) (err error) {
 		if num, err = o.Update(m); err == nil {
 			logger.D("User updated with number of columns", num)
 		}
-
 	}
 	return
-
 }
 
+func UpdateUserByIdWithColumns(m *GpUser, colums ...string) (err error) {
+
+	funcName := "models.UpdateUserByIdWithColumns"
+	logger.I(funcName)
+	o := orm.NewOrm()
+	v := &GpUser{Id: m.Id}
+	if err = o.Read(v); err == nil {
+		// var num int64
+		// if num, err = o.Update(m); err == nil {
+		// 	logger.D("User updated with number of columns", num)
+		// }
+		if err = UpdateRowByColumns(m, colums...); err == nil {
+			logger.E(err)
+			return
+		}
+	}
+	return
+}
 func DeleteUserById(userId int) (err error) {
 	funcName := "models.DeleteUserById"
 	logger.I(funcName)
