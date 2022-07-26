@@ -1,4 +1,4 @@
-package service
+package loginservice
 
 import (
 	"github.com/dgrijalva/jwt-go"
@@ -15,7 +15,7 @@ type ForgotPassword struct {
 }
 
 func Authorise() gin.HandlerFunc {
-	funcName := "service.Authorise"
+	funcName := "loginserviceAuthorise"
 	logger.I(funcName)
 	return Authorization
 
@@ -50,7 +50,7 @@ func Authorization(ctx *gin.Context) {
 
 func IsUserExist() gin.HandlerFunc {
 
-	funcName := "service.IsUserExist"
+	funcName := "loginserviceIsUserExist"
 	logger.I(funcName)
 
 	return func(ctx *gin.Context) {

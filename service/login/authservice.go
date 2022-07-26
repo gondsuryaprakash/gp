@@ -1,4 +1,4 @@
-package service
+package loginservice
 
 import (
 	"fmt"
@@ -29,7 +29,7 @@ type Claims struct {
 }
 
 func JWTAuthService() AuthService {
-	funcName := "service.JWTAuthService"
+	funcName := "loginserviceJWTAuthService"
 	logger.D(jwtSecreteKey)
 	logger.D(funcName)
 	return &AuthStruct{
@@ -39,7 +39,7 @@ func JWTAuthService() AuthService {
 }
 
 func (v *AuthStruct) VerifyJWt(encodedToken string) (*jwt.Token, error) {
-	funcName := "service.VerifyJWt"
+	funcName := "loginserviceVerifyJWt"
 	logger.I(funcName)
 	return jwt.Parse(encodedToken, func(token *jwt.Token) (interface{}, error) {
 		if _, isvalid := token.Method.(*jwt.SigningMethodHMAC); !isvalid {
@@ -52,7 +52,7 @@ func (v *AuthStruct) VerifyJWt(encodedToken string) (*jwt.Token, error) {
 }
 
 func (v *AuthStruct) GenerateToken(ctx *gin.Context, email string) string {
-	funcName := "service.GenerateToken"
+	funcName := "loginserviceGenerateToken"
 	logger.D(funcName)
 	expiryTime := time.Now().Add(5 * time.Minute)
 	claims := &Claims{

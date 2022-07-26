@@ -7,7 +7,8 @@ import (
 
 	"github.com/gondsuryaprakash/gondpariwar/logger"
 	"github.com/gondsuryaprakash/gondpariwar/models"
-	service "github.com/gondsuryaprakash/gondpariwar/service/login"
+	loginservice "github.com/gondsuryaprakash/gondpariwar/service/login"
+	"github.com/gondsuryaprakash/gondpariwar/service/mailservice"
 	"github.com/gondsuryaprakash/gondpariwar/utils"
 
 	"github.com/gondsuryaprakash/gondpariwar/utilities"
@@ -56,13 +57,11 @@ func PostLogin(ctx *gin.Context) {
 		return
 
 	}
-
-	logger.D("user.Password", user.Password)
-	logger.D("v.Password", v.Password)
 	isPasswordMatched := utils.CheckPasswordHash(user.Password, v.Password)
 
 	if isPasswordMatched {
-		token := service.JWTAuthService().GenerateToken(ctx, user.Email)
+
+		token := loginservice.JWTAuthService().GenerateToken(ctx, user.Email)
 		logger.I(funcName, token)
 		response := utilities.ResponseWithModel(utilities.GP_CODE_200, token, "Loggin Successfully", "")
 		ctx.SetCookie("token", token, 3600, "/", "localhost", false, true)
@@ -137,6 +136,7 @@ func AddUser(ctx *gin.Context) {
 
 }
 
+// PostForgotPassword for reset password .
 func PostForgotPassword(ctx *gin.Context) {
 
 	funcName := "controller.ForgotPassword"
@@ -159,7 +159,22 @@ func PostForgotPassword(ctx *gin.Context) {
 		return
 	}
 
+	// To Do --->
+	/*
+		1. After changing the password send mail regarding user has changed your password.
+		2. Remove chache from every where
+
+	*/
+
+	mailservice.SendMail(123, "suryaprakashgond15243@gmail.com")
+
 	resturnResponse := utilities.ResponseWithError(utilities.GP_CODE_200, "Password changed successfully")
 	ctx.JSON(http.StatusOK, resturnResponse)
 
 }
+
+// Suggested
+// New Feature Genearate URL for sending mail. regarding change password
+// New Feature login with otp
+// New Feature login with pincode
+// new feature login with finger Print
